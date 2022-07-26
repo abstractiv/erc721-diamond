@@ -1,31 +1,39 @@
 {
-  "name": "contracts-starter",
+  "name": "erc721-diamond",
   "version": "1.0.0",
-  "description": "Template for contract projects.",
-  "main": "index.js",
+  "description": "ERC721 using Diamonds",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mudgen/contracts-starter.git"
+    "url": "https://github.com/abstractiv/erc721-diamond.git"
   },
-  "author": "Nick Mudge",
+  "author": "https://github.com/abstractiv",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/mudgen/contracts-starter/issues"
+  "homepage": "https://github.com/abstractiv/erc721-diamond#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.1",
+    "hardhat": "^2.10.1"
   },
-  "homepage": "https://github.com/mudgen/contracts-starter#readme",
   "devDependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "chai": "^4.3.4",
-    "dotenv": "^8.6.0",
-    "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.4.1",
-    "hardhat": "^2.4.1",
-    "prettier": "^2.3.2",
-    "prettier-plugin-solidity": "^1.0.0-beta.13",
-    "standard": "^16.0.3"
+    "@nomiclabs/hardhat-ethers": "^2.1.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "chai": "^4.3.6",
+    "dotenv": "^16.0.1",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.9",
+    "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.20",
+    "standard": "^17.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
+    "@nomiclabs/hardhat-ganache": "^2.0.1",
+    "@openzeppelin/hardhat-upgrades": "^1.19.0",
+    "hardhat-contract-sizer": "^2.6.1",
+    "hardhat-diamond-abi": "^3.0.1",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solhint": "^3.3.7",
+    "solidity-coverage": "^0.7.21"
   }
 }

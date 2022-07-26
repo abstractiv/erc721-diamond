@@ -22,7 +22,7 @@ async function deployDiamond () {
   // deploy DiamondInit
   // DiamondInit provides a function that is called when the diamond is upgraded to initialize state variables
   // Read about how the diamondCut function works here: https://eips.ethereum.org/EIPS/eip-2535#addingreplacingremoving-functions
-  const DiamondInit = await ethers.getContractFactory('DiamondInit')
+  const DiamondInit = await ethers.getContractFactory('ERC721Init')
   const diamondInit = await DiamondInit.deploy()
   await diamondInit.deployed()
   console.log('DiamondInit deployed:', diamondInit.address)
@@ -32,7 +32,9 @@ async function deployDiamond () {
   console.log('Deploying facets')
   const FacetNames = [
     'DiamondLoupeFacet',
-    'OwnershipFacet'
+    'OwnershipFacet',
+    'ERC721URIStorage',
+    'AccessControlFacet'
   ]
   const cut = []
   for (const FacetName of FacetNames) {
@@ -54,7 +56,7 @@ async function deployDiamond () {
   let tx
   let receipt
   // call to init function
-  let functionCall = diamondInit.interface.encodeFunctionData('init')
+  let functionCall = diamondInit.interface.encodeFunctionData('init', [['asdf', 'asdf']])
   tx = await diamondCut.diamondCut(cut, diamondInit.address, functionCall)
   console.log('Diamond cut tx: ', tx.hash)
   receipt = await tx.wait()
