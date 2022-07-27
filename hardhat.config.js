@@ -49,9 +49,6 @@ module.exports = {
     include: [
       'AccessControlFacet',
       'ERC721URIStorage',
-      'RentalFacet',
-      'UnderlyingCurrencyFacet',
-      'WithdrawalFacet',
       'DiamondLoupeFacet',
       'DiamondCutFacet',
       'OwnershipFacet'

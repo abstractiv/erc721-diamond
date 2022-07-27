@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import "./../libraries/LibAppStorage.sol";
@@ -6,12 +6,11 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/interfaces/IERC721Receiver.sol";
 import "./AccessControlFacet.sol";
 import "./../libraries/UsingEIP712.sol";
-import "@openzeppelin/contracts/interfaces/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+//import "@openzeppelin/contracts/interfaces/IERC20.sol";
+//import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract ERC721URIStorage is UsingEIP712 {
-    using SafeERC20 for IERC20;
     using Address for address;
     using Strings for uint256;
     using SafeMath for uint256;
@@ -316,13 +315,7 @@ contract ERC721URIStorage is UsingEIP712 {
         address from,
         address to,
         uint256 tokenId
-    ) internal {
-        RentalData storage s = LibAppStorage.RentalStorage();
-        require(
-            s.rentals[tokenId].owner == address(0) &&
-                s.rentals[tokenId].renter == address(0)
-        );
-    }
+    ) internal {}
 
     function _afterTokenTransfer(
         address from,
@@ -347,36 +340,13 @@ contract ERC721URIStorage is UsingEIP712 {
         AccessControlData storage acd = LibAppStorage.AccessControlStorage();
         address signer = _verifyMintingPermission(permission);
         require(acd.roles[MINTER_ROLE].members[signer], "Invalid signature");
-        CurrencyData storage cd = LibAppStorage.CurrencyStorage();
-        require(
-            permission.currency != address(0) &&
-                cd.supportsCurrency[permission.currency],
-            "Currency not supported"
-        );
-
-        require(
-            IERC20(permission.currency).allowance(msg.sender, address(this)) >=
-                permission.mintingPrice,
-            "Allowance not enough"
-        );
-        IERC20 currency = IERC20(permission.currency);
 
         // EFFECTS
-        WithdrawalData storage wd = LibAppStorage.WithdrawalStorage();
-        uint256 before = wd.erc20Pending[address(currency)][contractOwner()];
-        wd.erc20Pending[address(currency)][contractOwner()] = before.add(
-            permission.mintingPrice
-        );
         _safeMint(signer, permission.tokenId);
         _setTokenURI(permission.tokenId, permission.uri);
         _transfer(signer, permission.to, permission.tokenId);
 
         // INTERACTIONS
-        currency.safeTransferFrom(
-            msg.sender,
-            address(this),
-            permission.mintingPrice
-        );
         assert(ownerOf(permission.tokenId) == permission.to);
         return permission.tokenId;
     }
@@ -389,18 +359,10 @@ contract ERC721URIStorage is UsingEIP712 {
         AccessControlData storage acd = LibAppStorage.AccessControlStorage();
         address signer = _verifyMintingPermission(permission);
         require(acd.roles[MINTER_ROLE].members[signer], "Invalid signature");
-        CurrencyData storage cd = LibAppStorage.CurrencyStorage();
-        require(
-            permission.currency == address(0) && cd.supportsEther,
-            "Currency not supported"
-        );
 
         require(msg.value >= permission.mintingPrice, "Value not enough");
 
         // EFFECTS
-        WithdrawalData storage wd = LibAppStorage.WithdrawalStorage();
-        uint256 before = wd.ethPending[contractOwner()];
-        wd.ethPending[contractOwner()] = before.add(permission.mintingPrice);
         _safeMint(signer, permission.tokenId);
         _setTokenURI(permission.tokenId, permission.uri);
         _transfer(signer, permission.to, permission.tokenId);

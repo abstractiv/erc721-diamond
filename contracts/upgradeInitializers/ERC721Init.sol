@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 import "./../libraries/UsingEIP712.sol";
 import "./../libraries/LibDiamond.sol";

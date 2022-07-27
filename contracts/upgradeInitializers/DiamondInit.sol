@@ -7,21 +7,28 @@ pragma solidity ^0.8.0;
 * Implementation of a diamond.
 /******************************************************************************/
 
-import {LibDiamond} from "../libraries/LibDiamond.sol";
+import { LibDiamond}  from "../libraries/LibDiamond.sol";
 import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
 import { IERC165 } from "../interfaces/IERC165.sol";
+import { ERC721Data, LibAppStorage } from "../libraries/LibAppStorage.sol";
+
 
 // It is expected that this contract is customized if you want to deploy your diamond
 // with data from a deployment script. Use the init function to initialize state variables
 // of your diamond. Add parameters to the init funciton if you need to.
 
-contract DiamondInit {    
+contract DiamondInit {
+
+    struct Args {
+        string name;
+        string symbol;
+    }
 
     // You can add parameters to this function in order to pass in 
     // data to set your own state variables
-    function init() external {
+    function init(Args memory _args) external {
         // adding ERC165 data
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         ds.supportedInterfaces[type(IERC165).interfaceId] = true;
@@ -34,7 +41,11 @@ contract DiamondInit {
         // arguments: address _init and bytes calldata _calldata
         // These arguments are used to execute an arbitrary function using delegatecall
         // in order to set state variables in the diamond during deployment or an upgrade
-        // More info here: https://eips.ethereum.org/EIPS/eip-2535#diamond-interface 
+        // More info here: https://eips.ethereum.org/EIPS/eip-2535#diamond-interface
+        ERC721Data storage tokenData = LibAppStorage.ERC721Storage();
+        tokenData.name = _args.name;
+        tokenData.symbol = _args.symbol;
+
     }
 
 
