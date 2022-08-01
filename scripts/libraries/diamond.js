@@ -1,13 +1,23 @@
 /* global ethers */
 
+const { hexDataSlice } = require('@ethersproject/bytes')
+const { id } = require('@ethersproject/hash')
 const FacetCutAction = { Add: 0, Replace: 1, Remove: 2 }
 
 // get function selectors from ABI
-function getSelectors (contract) {
+function getSelectors (contractName, contract) {
+  console.log(`\nDeploying contract ${contractName}`)
   const signatures = Object.keys(contract.interface.functions)
   const selectors = signatures.reduce((acc, val) => {
     if (val !== 'init(bytes)') {
-      acc.push(contract.interface.getSighash(val))
+      let functionSigHash = contract.interface.getSighash(val)
+      let contractNameHash = hexDataSlice(id(contractName), 0, 4);
+      let combinedSigHash = hexDataSlice(id(`${contractName}.${val}`), 0, 4);
+      
+      console.log(`In ${contractName} (${contractNameHash}), function ${val} is ${functionSigHash} . Combined sig is ${combinedSigHash} .`)
+      
+      acc.push(functionSigHash)
+  
     }
     return acc
   }, [])

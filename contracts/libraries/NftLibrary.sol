@@ -1,7 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "./INftProject.sol";
+import "../interfaces/IERC721Custom.sol";
+import { MintPhase } from "./LibERC721Storage.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
+
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 library NftLibrary {
@@ -22,7 +24,7 @@ library NftLibrary {
         mapping(address => bool) isMintedPublic;
     }
 
-    event ChangedMintPhase(INftProject.MintPhase _mintPhase);
+    event ChangedMintPhase(MintPhase _mintPhase);
     event ChangedPrice(uint256 _mintPhase, uint256 _price);
     event ChangedMaxQuantity(uint256 _mintPhase, uint256 _qty);
     event ChangedMerkleRoot(uint256 _mintPhase, bytes32 _newMerkleRoot);
@@ -39,7 +41,7 @@ library NftLibrary {
         address _address,
         uint256 _uintMintPhase
     ) public view returns (bool) {
-        if (INftProject.MintPhase(_uintMintPhase) == INftProject.MintPhase.ALLOWLIST || INftProject.MintPhase(_uintMintPhase) == INftProject.MintPhase.WAITLIST) {
+        if (MintPhase(_uintMintPhase) == MintPhase.ALLOWLIST || MintPhase(_uintMintPhase) == MintPhase.WAITLIST) {
             return collectionData.isMintedList[_address];
         } else {
             return collectionData.isMintedPublic[_address];
@@ -47,10 +49,10 @@ library NftLibrary {
     }
 
 
-    function setMintPhase(uint256 _uintMintPhase) public returns (INftProject.MintPhase) {
+    function setMintPhase(uint256 _uintMintPhase) public returns (MintPhase) {
         // _uintMintPhase -> 0: MintStatus.CLOSED, 1: MintStatus.TEAM, 2: MintStatus.ALLOWLIST, 3: MintStatus.WAITLIST, 4: MintStatus.PUBLIC
-        if (_uintMintPhase < 0 && _uintMintPhase > 3) revert INftProject.MintPhaseNotFound(_uintMintPhase);
-        INftProject.MintPhase mintPhase = INftProject.MintPhase(_uintMintPhase);
+        if (_uintMintPhase < 0 && _uintMintPhase > 3) revert IERC721Custom.MintPhaseNotFound(_uintMintPhase);
+        MintPhase mintPhase = MintPhase(_uintMintPhase);
         emit ChangedMintPhase(mintPhase);
         return mintPhase;
     }
@@ -58,40 +60,40 @@ library NftLibrary {
 
     function verifyMintEligibility(
         CollectionData storage collectionData,
-        INftProject.MintPhase mintPhase,
+        MintPhase mintPhase,
         uint256 totalSupply,
         uint256 maxSupply,
         uint256 _qty,
         bytes32[] calldata _proof
     ) public {
         // Check if mint open
-        if (mintPhase == INftProject.MintPhase.CLOSED) revert INftProject.MintingClosed();
+        if (mintPhase == MintPhase.CLOSED) revert IERC721Custom.MintingClosed();
 
         // Check if enough left in max supply
-        if (totalSupply + _qty > maxSupply) revert INftProject.InsufficientMaxQuantity();
+        if (totalSupply + _qty > maxSupply) revert IERC721Custom.InsufficientMaxQuantity();
 
         // Check if minting beyond allocated amount
-        if (_qty <= 0 && _qty > collectionData.maxPerMintPhase[uint256(mintPhase)]) revert INftProject.QuantityError();
+        if (_qty <= 0 && _qty > collectionData.maxPerMintPhase[uint256(mintPhase)]) revert IERC721Custom.QuantityError();
 
-        if (mintPhase != INftProject.MintPhase.TEAM) {
+        if (mintPhase != MintPhase.TEAM) {
             // Check if is human user if not minting in TEAM mint phase
-            if (!isHumanUser()) revert INftProject.NonHumanSender();
+            if (!isHumanUser()) revert IERC721Custom.NonHumanSender();
 
             // Check price if not minting in TEAM mint phase
-            if (msg.value < collectionData.pricePerMintPhase[uint256(mintPhase)] * _qty) revert INftProject.InsufficientMintEth(collectionData.pricePerMintPhase[uint256(mintPhase)] * _qty);
+            if (msg.value < collectionData.pricePerMintPhase[uint256(mintPhase)] * _qty) revert IERC721Custom.InsufficientMintEth(collectionData.pricePerMintPhase[uint256(mintPhase)] * _qty);
         }
 
         // Check if in the mint phases' respective list
-        if (mintPhase != INftProject.MintPhase.PUBLIC) {
+        if (mintPhase != MintPhase.PUBLIC) {
             _checkProof(collectionData.merkleRoots[uint256(mintPhase)], _proof);
         }
 
         // Check if address has already minted
-        if (mintPhase == INftProject.MintPhase.TEAM || mintPhase == INftProject.MintPhase.ALLOWLIST || mintPhase == INftProject.MintPhase.WAITLIST) {
-            if (collectionData.isMintedList[msg.sender]) revert INftProject.AlreadyMinted();
+        if (mintPhase == MintPhase.TEAM || mintPhase == MintPhase.ALLOWLIST || mintPhase == MintPhase.WAITLIST) {
+            if (collectionData.isMintedList[msg.sender]) revert IERC721Custom.AlreadyMinted();
             collectionData.isMintedList[msg.sender] = true;
         } else {
-            if (collectionData.isMintedPublic[msg.sender]) revert INftProject.AlreadyMinted();
+            if (collectionData.isMintedPublic[msg.sender]) revert IERC721Custom.AlreadyMinted();
             collectionData.isMintedPublic[msg.sender] = true;
         }
     }
@@ -102,34 +104,34 @@ library NftLibrary {
      */
     function _checkProof(bytes32 _merkleRoot, bytes32[] calldata _proof) public view {
         if ( ! MerkleProofUpgradeable.verify(_proof, _merkleRoot, keccak256(abi.encodePacked(msg.sender))) )
-            revert INftProject.AddressNotOnList();
+            revert IERC721Custom.AddressNotOnList();
     }
 
 
     // Set different merkle roots for different phases
     function setMerkleRoot(CollectionData storage collectionData, bytes32 _merkleRoot, uint256 _uintMintPhase) public {
         // _uintMintPhase -> 0: MintStatus.CLOSED, 1: MintStatus.TEAM, 2: MintStatus.ALLOWLIST, 3: MintStatus.WAITLIST, 4: MintStatus.PUBLIC
-        if (_uintMintPhase < 0 || _uintMintPhase > 4) revert INftProject.MintPhaseNotFound(_uintMintPhase);
+        if (_uintMintPhase < 0 || _uintMintPhase > 4) revert IERC721Custom.MintPhaseNotFound(_uintMintPhase);
         collectionData.merkleRoots[_uintMintPhase] = _merkleRoot;
         emit ChangedMerkleRoot(_uintMintPhase, _merkleRoot);
     }
 
     function setPrice(CollectionData storage collectionData, uint256 _uintMintPhase, uint256 _price) public {
-        if (_price < 0) revert INftProject.InvalidPrice();
+        if (_price < 0) revert IERC721Custom.InvalidPrice();
         collectionData.pricePerMintPhase[_uintMintPhase] = _price;
         emit ChangedPrice(_uintMintPhase, _price);
     }
 
     function setMaxPerMintPhase(CollectionData storage collectionData, uint256 _uintMintPhase, uint256 _qty, uint256 _maxSupply) public {
-        if (_qty < 0 || _qty > _maxSupply) revert INftProject.QuantityError();
+        if (_qty < 0 || _qty > _maxSupply) revert IERC721Custom.QuantityError();
         collectionData.maxPerMintPhase[_uintMintPhase] = _qty;
         emit ChangedMaxQuantity(_uintMintPhase, _qty);
     }
 
 
     function withdraw(address beneficiary, address contractAddress) public {
-        if (beneficiary == address(0)) revert INftProject.BeneficiaryAddressNotSet();
-        if (contractAddress.balance == 0) revert INftProject.EthBalanceZero();
+        if (beneficiary == address(0)) revert IERC721Custom.BeneficiaryAddressNotSet();
+        if (contractAddress.balance == 0) revert IERC721Custom.EthBalanceZero();
         payable(beneficiary).transfer(contractAddress.balance);
     }
 

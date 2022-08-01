@@ -9,6 +9,9 @@ require('hardhat-diamond-abi')
 require('solidity-coverage')
 require('hardhat-gas-reporter')
 
+require("@nomiclabs/hardhat-web3")
+require("hardhat-gas-trackooor");
+
 require('dotenv').config()
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -43,6 +46,11 @@ module.exports = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
+  },
+  gasReporter: {
+    enabled: true,
+    currency: 'USD',
+    gasPrice: 20
   },
   diamondAbi: {
     name: 'ERC721Diamond',

@@ -36,8 +36,11 @@ async function deployDiamond () {
   const FacetNames = [
     'DiamondLoupeFacet',
     'OwnershipFacet',
-    'ERC721URIStorage',
-    'AccessControlFacet'
+    'AccessControlFacet',
+    // 'ERC721URIStorage',
+    
+    'ERC721Facet'
+    // 'ERC721URIStorage'
   ]
   const cut = []
   const contractAddresses = []
@@ -52,7 +55,7 @@ async function deployDiamond () {
     cut.push({
       facetAddress: facet.address,
       action: FacetCutAction.Add,
-      functionSelectors: getSelectors(facet)
+      functionSelectors: getSelectors(FacetName, facet)
     })
   }
 
@@ -63,10 +66,9 @@ async function deployDiamond () {
   let tx
   let receipt
   // call to init function
-  // TODO
-  let Args = ["Catas", "CATAS"]
-  let functionCall = diamondInit.interface.encodeFunctionData('init', [Args])
-  // let functionCall = diamondInit.interface.encodeFunctionData('init', [['Catas', '1.0.0']])
+  let args = {name: "Catas", symbol: "CATAS", supply: 500}
+  let functionCall = diamondInit.interface.encodeFunctionData('init', [args])
+  
   tx = await diamondCut.diamondCut(cut, diamondInit.address, functionCall)
   console.log('Diamond cut tx: ', tx.hash)
   receipt = await tx.wait()
@@ -77,33 +79,27 @@ async function deployDiamond () {
   
   
   
-  console.log('Test function in diamond');
-  
-  // const asdf = await ethers.getContractAt('ERC721URIStorage', contractAddresses[2])
-  // console.log(`asdf is ${asdf}`)
-  // console.log(`abi is ${asdf.abi}`)
-  //
-  // const ERC721URIStorageFacet = await ethers.getContractFactory('ERC721URIStorage');
-  // console.log(`ERC721URIStorageFacet is ${ERC721URIStorageFacet}`)
-  // console.log(`abi is ${ERC721URIStorageFacet.abi}`)
-  //
-  // let erc721URIStorageFacet = new web3.eth.Contract(ERC721URIStorageFacet.abi, diamond.address);
-  // let erc721Name = await erc721URIStorageFacet.name();
-  // let erc721Symbol = await erc721URIStorageFacet.symbol();
+  // console.log('Test function in diamond');
   
   const ERC721Diamond = await ethers.getContractAt(
-    "ERC721URIStorage",
+    "ERC721Facet",
     diamond.address
   );
   
-  console.log(ERC721Diamond)
-  console.log(ERC721Diamond.address)
+  // console.log(ERC721Diamond)
+  // console.log(ERC721Diamond.address)
   
-  let erc721Name = await ERC721Diamond.name();
-  let erc721Symbol = await ERC721Diamond.symbol();
+  // let owner = await ERC721Diamond.owner();
+  // console.log(`owner is ${owner}`)
   
-  console.log(`Name is ${erc721Name}`);
-  console.log(`Symb is ${erc721Symbol}`);
+  // let erc721Symbol = await ERC721Diamond.symbol();
+  // let erc721Name = await ERC721Diamond.name(diamond.address);
+  // let erc721MaxSupply = await ERC721Diamond.maxSupply();
+  //
+  //
+  // console.log(`Name is ${erc721Name}`);
+  // console.log(`Symb is ${erc721Symbol}`);
+  // console.log(`asdf is ${erc721MaxSupply}`)
   
   
   return diamond.address

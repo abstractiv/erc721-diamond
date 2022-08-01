@@ -12,7 +12,8 @@ import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 import { IERC173 } from "../interfaces/IERC173.sol";
 import { IERC165 } from "../interfaces/IERC165.sol";
-import { ERC721Data, LibAppStorage } from "../libraries/LibAppStorage.sol";
+import { IERC721 } from "../interfaces/IERC721.sol";
+import { TokenData, LibERC721Storage } from "../libraries/LibERC721Storage.sol";
 
 
 // It is expected that this contract is customized if you want to deploy your diamond
@@ -24,6 +25,7 @@ contract DiamondInit {
     struct Args {
         string name;
         string symbol;
+        uint256 supply;
     }
 
     // You can add parameters to this function in order to pass in 
@@ -35,6 +37,7 @@ contract DiamondInit {
         ds.supportedInterfaces[type(IDiamondCut).interfaceId] = true;
         ds.supportedInterfaces[type(IDiamondLoupe).interfaceId] = true;
         ds.supportedInterfaces[type(IERC173).interfaceId] = true;
+        ds.supportedInterfaces[type(IERC721).interfaceId] = true;
 
         // add your own state variables 
         // EIP-2535 specifies that the `diamondCut` function takes two optional 
@@ -42,9 +45,11 @@ contract DiamondInit {
         // These arguments are used to execute an arbitrary function using delegatecall
         // in order to set state variables in the diamond during deployment or an upgrade
         // More info here: https://eips.ethereum.org/EIPS/eip-2535#diamond-interface
-        ERC721Data storage tokenData = LibAppStorage.ERC721Storage();
-        tokenData.name = _args.name;
-        tokenData.symbol = _args.symbol;
+        TokenData storage tokenData = LibERC721Storage.tokenStorage();
+
+        tokenData._name = _args.name;
+        tokenData._symbol = _args.symbol;
+        tokenData._maxSupply = _args.supply;
 
     }
 

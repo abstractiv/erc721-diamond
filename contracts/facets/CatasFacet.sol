@@ -9,11 +9,11 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./INftProject.sol";
-import "./NftLibrary.sol";
+import "../interfaces/IERC721Custom.sol";
+import "../libraries/NftLibrary.sol";
 
 contract Catas is
-INftProject,
+IERC721Custom,
 ERC721EnumerableUpgradeable,
 OwnableUpgradeable,
 ReentrancyGuardUpgradeable,
@@ -72,7 +72,7 @@ UUPSUpgradeable
     function mint(
         uint256 _qty,
         bytes32[] calldata _proof
-    ) external override payable nonReentrant {
+    ) external payable nonReentrant {
         collectionData.verifyMintEligibility(
             mintPhase,
             totalSupply(),
@@ -110,7 +110,7 @@ UUPSUpgradeable
 
 
     // Setters
-    function setBaseURI(string memory _baseTokenURI) external override adminOrOwner {
+    function setBaseURI(string memory _baseTokenURI) external adminOrOwner {
         baseTokenURI = _baseTokenURI;
         emit ChangedBaseURI(_baseTokenURI);
     }
@@ -142,7 +142,7 @@ UUPSUpgradeable
     /**
      * @dev See {INftProject-setBeneficiary}.
      */
-    function setBeneficiary(address payable _beneficiary) public override onlyOwner {
+    function setBeneficiary(address payable _beneficiary) public onlyOwner {
         beneficiary = _beneficiary;
     }
 
